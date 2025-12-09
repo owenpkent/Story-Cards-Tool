@@ -7,10 +7,36 @@ A drag-and-drop story beat organizer and visual storyboarding tool. No server ne
 ## Quick Start
 
 1. Open `story-cards.html` in your browser
-2. Drag cards to rearrange, click to edit
-3. Switch between **Story Beats**, **Swimlanes**, and **Storyboard** views
-4. Click **Export** → Download your work
-5. Commit to Git for version control
+2. Switch between **Story Beats**, **Swimlanes**, and **Storyboard** views
+3. Edit your content (drag to rearrange, click to edit)
+4. Click **Export** → Download your work as `.md` or `.json`
+5. To continue later: Click **Load** → Select your saved file
+
+---
+
+## Using the Storyboard
+
+### Creating Shots
+1. Click the **Storyboard** button in the toolbar
+2. **Drag images** from File Explorer directly onto the storyboard — each image becomes a shot
+3. Or click the **+ Add Shot** card to add a shot manually
+
+### Editing Shots (Inline)
+Click directly on any field to edit it:
+- **Shot number** — e.g., "1", "1A", "2B"
+- **Description** — What happens in the shot
+- **Camera** — e.g., "Wide", "CU", "Dolly in"
+- **Duration** — e.g., "5s"
+
+Press **Enter** to save, **Escape** to cancel.
+
+### Saving & Loading Your Storyboard
+1. Click **Export** → Downloads `storyboard.json`
+2. Save this file somewhere safe (e.g., your project folder)
+3. To continue later: Click **Load** → Select your `storyboard.json` file
+4. Your shots, images, and all metadata are restored
+
+> **Important**: The JSON file stores image data, so your images will appear when you reload. Keep the JSON file — it's your save file!
 
 ---
 
@@ -22,9 +48,10 @@ A drag-and-drop story beat organizer and visual storyboarding tool. No server ne
 
 ### Storyboard View
 - **Visual timeline** — Arrange shots in sequence
-- **Image references** — Drag & drop images or paste URLs
-- **Shot numbers** — Auto-numbered with manual override
-- **Descriptions** — Add shot descriptions, camera notes
+- **Drag & drop images** — Drop images directly from File Explorer onto the storyboard
+- **Inline editing** — Click any field to edit shot number, description, camera notes, duration
+- **Reorder shots** — Drag shots to rearrange the sequence
+- **Multiple images at once** — Drop several images to create multiple shots
 
 ### Editing
 - **Click card** — Open edit modal
