@@ -215,9 +215,48 @@ Users with existing local files can:
 
 ---
 
-## Questions to Consider
+## Decisions Made
 
-1. Do you want email/password sign-in, or just Google?
-2. Should users be able to use the tool without signing in (local-only mode)?
-3. Any plans for team/organization accounts?
-4. Custom domain name?
+- **Auth method**: Google sign-in only (simpler, no password management)
+- **Collaboration**: Yes, sharing with other users is a goal (Phase 4)
+- **Local mode**: Keep working without sign-in, cloud sync when signed in
+
+---
+
+## Firebase Setup Checklist
+
+Go to [console.firebase.google.com](https://console.firebase.google.com):
+
+1. **Create Project**
+   - Click "Add project"
+   - Name it (e.g., "story-cards-tool")
+   - Disable Google Analytics (optional, not needed)
+
+2. **Enable Authentication**
+   - Go to Build → Authentication → Get started
+   - Click "Sign-in method" tab
+   - Enable "Google" provider
+   - Add your email as support email
+
+3. **Create Firestore Database**
+   - Go to Build → Firestore Database → Create database
+   - Start in "test mode" (we'll add security rules later)
+   - Choose region (us-central1 is fine)
+
+4. **Register Web App**
+   - Go to Project Settings (gear icon)
+   - Scroll to "Your apps" → Click web icon (`</>`)
+   - Register app (nickname: "story-cards-web")
+   - Copy the `firebaseConfig` object — looks like:
+   ```javascript
+   const firebaseConfig = {
+     apiKey: "AIza...",
+     authDomain: "your-project.firebaseapp.com",
+     projectId: "your-project",
+     storageBucket: "your-project.appspot.com",
+     messagingSenderId: "123...",
+     appId: "1:123...:web:abc..."
+   };
+   ```
+
+5. **Share the config** — Paste it here when ready and I'll integrate it.
