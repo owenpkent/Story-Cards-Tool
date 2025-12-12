@@ -67,6 +67,7 @@
             font-weight: 600;
             font-size: 0.75rem;
         }
+        button:disabled { opacity: 0.55; cursor: not-allowed; }
         button:hover { background: var(--accent-hover); }
         button.secondary { background: var(--border); color: var(--text-primary); }
         button.secondary:hover { opacity: 0.8; }
@@ -418,6 +419,11 @@
         }
         .toggle-switch.active::after { left: 22px; }
     </style>
+
+    <script src="https://www.gstatic.com/firebasejs/12.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics-compat.js"></script>
 </head>
 <body>
     <header>
@@ -429,6 +435,9 @@
             <button class="secondary view-btn" data-view="storyboard" onclick="setView('storyboard')">Storyboard</button>
             <button class="secondary" onclick="openActEditor()">Edit Acts</button>
             <button class="secondary" onclick="openTemplates()">Templates</button>
+            <button class="secondary" id="authToggleBtn" onclick="authToggle()">Sign In</button>
+            <button class="secondary" id="cloudSaveBtn" onclick="cloudSave()" disabled>Cloud Save</button>
+            <button class="secondary" id="cloudLoadBtn" onclick="cloudLoad()" disabled>Cloud Load</button>
             <button class="secondary" onclick="loadFile()">Load</button>
             <button onclick="exportFile()">Export</button>
             <button class="secondary" onclick="openSettings()">⚙️</button>
@@ -564,6 +573,30 @@
             <div class="modal-actions"><button class="secondary" onclick="closeModal('templatesModal')">Cancel</button></div>
         </div>
     </div>
+
+    <div class="modal-overlay" id="authModal">
+        <div class="modal" style="max-width:420px;">
+            <h2>Sign In / Sign Up</h2>
+            <form id="authForm">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="authEmail" autocomplete="email" required>
+                    <p style="font-size:0.65rem;color:var(--text-muted);margin-top:4px;">Enter an email + password, then choose Sign Up (first time) or Sign In.</p>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="authPassword" autocomplete="current-password" required>
+                    <p style="font-size:0.65rem;color:var(--text-muted);margin-top:4px;">Password must meet your Firebase Auth settings.</p>
+                </div>
+                <div id="authHelp" style="font-size:0.65rem;color:var(--text-muted);margin-bottom:8px;"></div>
+                <div class="modal-actions">
+                    <button type="button" class="secondary" onclick="closeModal('authModal')">Cancel</button>
+                    <button type="button" class="secondary" id="authSignUpBtn" onclick="authSignUp()" disabled>Sign Up</button>
+                    <button type="submit" id="authSignInBtn" disabled>Sign In</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div class="modal-overlay" id="actEditorModal">
         <div class="modal">
             <h2>Edit Acts</h2>
@@ -644,6 +677,229 @@
         
         // Storyboard data
         let shots = [];
+
+        const firebaseConfig = {
+            apiKey: "REDACTED",
+            authDomain: "story-cards-a3cf6.firebaseapp.com",
+            projectId: "story-cards-a3cf6",
+            storageBucket: "story-cards-a3cf6.firebasestorage.app",
+            messagingSenderId: "979819599170",
+            appId: "1:979819599170:web:b1cac56274c491dccd24db",
+            measurementId: "G-5JGN4GMMRQ"
+        };
+        const cloudProjectId = 'default';
+
+        let cloudReady = false;
+        let cloudUser = null;
+        let cloudAuth = null;
+        let cloudDb = null;
+
+        function initCloud() {
+            try {
+                if (!window.firebase) return;
+                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                try { firebase.analytics(); } catch {}
+                cloudAuth = firebase.auth();
+                cloudDb = firebase.firestore();
+                cloudReady = true;
+
+                cloudAuth.onAuthStateChanged(user => {
+                    cloudUser = user || null;
+                    updateCloudUi();
+                });
+            } catch {
+                cloudReady = false;
+                cloudUser = null;
+                updateCloudUi();
+            }
+        }
+
+        function updateCloudUi() {
+            const authBtn = document.getElementById('authToggleBtn');
+            const saveBtn = document.getElementById('cloudSaveBtn');
+            const loadBtn = document.getElementById('cloudLoadBtn');
+
+            if (!authBtn || !saveBtn || !loadBtn) return;
+
+            if (!cloudReady) {
+                authBtn.textContent = 'Sign In';
+                saveBtn.disabled = true;
+                loadBtn.disabled = true;
+                return;
+            }
+
+            if (cloudUser) {
+                authBtn.textContent = 'Sign Out';
+                saveBtn.disabled = false;
+                loadBtn.disabled = false;
+            } else {
+                authBtn.textContent = 'Sign In';
+                saveBtn.disabled = true;
+                loadBtn.disabled = true;
+            }
+        }
+
+        function authToggle() {
+            if (!cloudReady) {
+                alert('Cloud not available. Make sure you are running from a web server (not file://) and Firebase scripts can load.');
+                return;
+            }
+            if (cloudUser) {
+                cloudAuth.signOut();
+                return;
+            }
+            document.getElementById('authEmail').value = '';
+            document.getElementById('authPassword').value = '';
+            document.getElementById('authModal').classList.add('active');
+        }
+
+        function authSignUp() {
+            if (!cloudReady) return;
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+            if (!email || !password) {
+                alert('Enter email and password first.');
+                return;
+            }
+            cloudAuth.createUserWithEmailAndPassword(email, password)
+                .then(() => closeModal('authModal'))
+                .catch(err => alert(err.message));
+        }
+
+        function authSignIn() {
+            if (!cloudReady) return;
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+            if (!email || !password) {
+                alert('Enter email and password first.');
+                return;
+            }
+            cloudAuth.signInWithEmailAndPassword(email, password)
+                .then(() => closeModal('authModal'))
+                .catch(err => alert(err.message));
+        }
+
+        function sanitizeForFirestore(value) {
+            if (value === undefined) return undefined;
+            if (value === null) return null;
+
+            const t = typeof value;
+            if (t === 'string' || t === 'boolean') return value;
+            if (t === 'number') return Number.isFinite(value) ? value : null;
+
+            if (Array.isArray(value)) {
+                return value
+                    .map(sanitizeForFirestore)
+                    .filter(v => v !== undefined);
+            }
+
+            if (t === 'object') {
+                if (value instanceof Date) return value.toISOString();
+
+                const ctorName = value?.constructor?.name;
+                if (ctorName === 'FieldValue' || ctorName === 'Timestamp' || ctorName === 'GeoPoint' || ctorName === 'DocumentReference') {
+                    return value;
+                }
+
+                try {
+                    if (typeof Blob !== 'undefined' && value instanceof Blob) return undefined;
+                } catch {}
+
+                const out = {};
+                for (const [k, v] of Object.entries(value)) {
+                    const sv = sanitizeForFirestore(v);
+                    if (sv !== undefined) out[k] = sv;
+                }
+                return out;
+            }
+
+            return undefined;
+        }
+
+        function updateAuthActions() {
+            const email = document.getElementById('authEmail')?.value.trim();
+            const password = document.getElementById('authPassword')?.value;
+            const signUpBtn = document.getElementById('authSignUpBtn');
+            const signInBtn = document.getElementById('authSignInBtn');
+            const help = document.getElementById('authHelp');
+
+            const ok = !!email && !!password;
+            if (signUpBtn) signUpBtn.disabled = !ok;
+            if (signInBtn) signInBtn.disabled = !ok;
+            if (help) help.textContent = ok ? '' : 'Email and password are required.';
+        }
+
+        function getCloudDocRef() {
+            return cloudDb.collection('users').doc(cloudUser.uid).collection('projects').doc(cloudProjectId);
+        }
+
+        function getCloudPayload() {
+            // Strip large base64 data URLs from shots to avoid Firestore size/format issues
+            const cleanShots = shots.map(shot => {
+                const s = { ...shot };
+                // If imageUrl is a data URL, don't store it in cloud (too large)
+                if (s.imageUrl && s.imageUrl.startsWith('data:')) {
+                    delete s.imageUrl;
+                }
+                return s;
+            });
+
+            const raw = {
+                version: '1.0',
+                acts: JSON.parse(JSON.stringify(acts)),
+                cards: JSON.parse(JSON.stringify(cards)),
+                shots: JSON.parse(JSON.stringify(cleanShots))
+            };
+            const payload = sanitizeForFirestore(raw);
+            payload.updated = firebase.firestore.FieldValue.serverTimestamp();
+            console.log('Cloud save payload:', payload);
+            return payload;
+        }
+
+        function cloudSave() {
+            if (!cloudReady) { alert('Cloud not available.'); return; }
+            if (!cloudUser) { alert('Sign in first.'); return; }
+            
+            // Check if any shots have local images that won't sync
+            const localImageCount = shots.filter(s => s.imageUrl && s.imageUrl.startsWith('data:')).length;
+            
+            const payload = getCloudPayload();
+            console.log('Saving to Firestore...', payload);
+            return getCloudDocRef().set(payload, { merge: true })
+                .then(() => {
+                    document.getElementById('fileStatus').textContent = 'Cloud saved';
+                    document.getElementById('fileName').textContent = '';
+                    if (localImageCount > 0) {
+                        alert(`Saved! Note: ${localImageCount} image(s) are stored locally and won't sync to cloud. Image upload coming in a future update.`);
+                    }
+                })
+                .catch(err => {
+                    console.error('Firestore save error:', err);
+                    alert(err?.message || String(err));
+                });
+        }
+
+        function cloudLoad() {
+            if (!cloudReady) { alert('Cloud not available.'); return; }
+            if (!cloudUser) { alert('Sign in first.'); return; }
+            return getCloudDocRef().get()
+                .then(snap => {
+                    if (!snap.exists) {
+                        alert('No cloud project found yet. Click Cloud Save first.');
+                        return;
+                    }
+                    const data = snap.data() || {};
+                    if (Array.isArray(data.acts)) acts = data.acts;
+                    if (Array.isArray(data.cards)) cards = data.cards;
+                    if (Array.isArray(data.shots)) shots = data.shots;
+                    hasChanges = false;
+                    document.getElementById('changeStatus').textContent = '';
+                    document.getElementById('fileStatus').textContent = 'Loaded from cloud';
+                    document.getElementById('fileName').textContent = '';
+                    render();
+                })
+                .catch(err => alert(err.message));
+        }
 
         const templates = [
             // Classic Structures
@@ -868,16 +1124,30 @@
             document.getElementById('shotForm').addEventListener('submit', saveShot);
             document.getElementById('fileInput').addEventListener('change', e => { if(e.target.files[0]) loadFileContent(e.target.files[0]); e.target.value=''; });
             document.getElementById('shotImageInput').addEventListener('change', handleShotImageSelect);
+            document.getElementById('authForm').addEventListener('submit', e => { e.preventDefault(); authSignIn(); });
+            document.getElementById('authEmail').addEventListener('input', updateAuthActions);
+            document.getElementById('authPassword').addEventListener('input', updateAuthActions);
+            initCloud();
             setupFileDrop();
             setupShotImageDrop();
             renderTemplates();
             renderRecentFiles();
             applyTheme();
             applyColors();
-            updateViewButtons();
-            tryAutoLoad();
-            document.addEventListener('click', hideContextMenu);
-            document.addEventListener('contextmenu', handleContextMenu);
+            updateActSelect();
+            try {
+                const saved = localStorage.getItem('storyCardsLast');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    if (data.cards) cards = data.cards;
+                    if (data.acts) acts = data.acts;
+                    if (data.shots) shots = data.shots;
+                    document.getElementById('fileStatus').textContent = 'Restored:';
+                    document.getElementById('fileName').textContent = 'last session';
+                } else throw new Error();
+            } catch { document.getElementById('fileStatus').textContent = 'Ready'; document.getElementById('fileName').textContent = ''; }
+            updateAuthActions();
+            render();
         });
 
         // Theme
@@ -1279,11 +1549,15 @@
                 const shotNum = shot.shotNumber || (idx + 1);
                 const hasImage = shot.imageUrl || shot.imagePath;
                 
+                const imgSrc = shot.imageUrl || shot.imagePath;
+                const isLocalPath = imgSrc && !imgSrc.startsWith('data:') && !imgSrc.startsWith('http');
                 div.innerHTML = `
                     <div class="shot-number">Shot <span class="shot-editable" contenteditable="true" data-field="shotNumber" data-id="${shot.id}" data-placeholder="#">${esc(String(shotNum))}</span></div>
                     <div class="shot-image-container ${hasImage ? 'has-image' : ''}">
                         ${hasImage 
-                            ? `<img src="${esc(shot.imageUrl || shot.imagePath)}" alt="Shot ${shotNum}" onerror="this.parentElement.innerHTML='<div class=\\'shot-image-placeholder\\'>Image not found</div>'">`
+                            ? (isLocalPath 
+                                ? `<div class="shot-image-placeholder" style="font-size:0.6rem;">Image: ${esc(imgSrc)}<br><em>(Local path - not synced to cloud)</em></div>`
+                                : `<img src="${esc(imgSrc)}" alt="Shot ${shotNum}" onerror="this.parentElement.innerHTML='<div class=\\'shot-image-placeholder\\'>Image not found</div>'">`)
                             : '<div class="shot-image-placeholder">Drop image<br>or click + to add</div>'}
                     </div>
                     <div class="shot-editable shot-description" contenteditable="true" data-field="description" data-id="${shot.id}" data-placeholder="Description...">${esc(shot.description || '')}</div>
