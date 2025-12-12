@@ -84,6 +84,30 @@ The app now supports:
 **Services Not Yet Enabled:**
 - Firebase Storage (needed for Phase 3)
 
+### API Key Security Note
+
+The Firebase API key in `story-cards.html` is **designed to be public** for client-side web apps. GitHub may flag it as a "leaked secret" but this is expected behavior.
+
+**To secure your Firebase project:**
+
+1. **Restrict the API key** in [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
+   - Application restrictions → HTTP referrers → add `localhost:*`, `*.netlify.app`
+   - API restrictions → Restrict to Firebase APIs only
+
+2. **Add Firestore Security Rules** in Firebase Console → Firestore → Rules:
+   ```javascript
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /users/{userId}/projects/{projectId} {
+         allow read, write: if request.auth != null && request.auth.uid == userId;
+       }
+     }
+   }
+   ```
+
+3. **Close the GitHub alert** as "Won't fix" or "Revoked" (after adding restrictions)
+
 ---
 
 ## Files Changed
