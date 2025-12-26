@@ -418,6 +418,48 @@
             transition: left 0.2s;
         }
         .toggle-switch.active::after { left: 22px; }
+        /* Accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--accent);
+            color: var(--bg-primary);
+            padding: 8px 16px;
+            z-index: 1000;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 0 0 4px 0;
+        }
+        .skip-link:focus {
+            top: 0;
+        }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        :focus {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+        :focus:not(:focus-visible) {
+            outline: none;
+        }
+        :focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+        button:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/12.6.0/firebase-app-compat.js"></script>
@@ -426,13 +468,16 @@
     <script src="https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics-compat.js"></script>
 </head>
 <body>
-    <header>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header role="banner">
         <h1>🎬 Story Cards</h1>
-        <div class="toolbar">
-            <button onclick="openAddModal()">+ Card</button>
-            <button class="secondary view-btn" data-view="acts" onclick="setView('acts')">Acts</button>
-            <button class="secondary view-btn" data-view="swimlane" onclick="setView('swimlane')">Swimlanes</button>
-            <button class="secondary view-btn" data-view="storyboard" onclick="setView('storyboard')">Storyboard</button>
+        <nav role="navigation" aria-label="Main toolbar" class="toolbar">
+            <button onclick="openAddModal()" aria-label="Add new story beat card">+ Card</button>
+            <div role="tablist" aria-label="View options">
+                <button role="tab" class="secondary view-btn" data-view="acts" onclick="setView('acts')" aria-selected="true" aria-controls="actsView" id="tab-acts">Acts</button>
+                <button role="tab" class="secondary view-btn" data-view="swimlane" onclick="setView('swimlane')" aria-selected="false" aria-controls="swimlaneView" id="tab-swimlane">Swimlanes</button>
+                <button role="tab" class="secondary view-btn" data-view="storyboard" onclick="setView('storyboard')" aria-selected="false" aria-controls="storyboardView" id="tab-storyboard">Storyboard</button>
+            </div>
             <button class="secondary" onclick="openActEditor()">Edit Acts</button>
             <button class="secondary" onclick="openTemplates()">Templates</button>
             <button class="secondary" id="authToggleBtn" onclick="authToggle()">Sign In</button>
@@ -440,32 +485,38 @@
             <button class="secondary" id="cloudLoadBtn" onclick="cloudLoad()" disabled>Cloud Load</button>
             <button class="secondary" onclick="loadFile()">Load</button>
             <button onclick="exportFile()">Export</button>
-            <button class="secondary" onclick="openSettings()">⚙️</button>
-            <button class="secondary" id="themeToggle" onclick="toggleTheme()">☀️</button>
-            <div class="zoom-controls">
-                <button class="secondary zoom-btn" onclick="zoomOut()">−</button>
-                <span class="zoom-label" id="zoomLabel">100%</span>
-                <input type="range" min="25" max="200" value="100" id="zoomSlider" oninput="setZoom(this.value)">
-                <button class="secondary zoom-btn" onclick="zoomIn()">+</button>
+            <button class="secondary" onclick="openSettings()" aria-label="Open settings">⚙️</button>
+            <button class="secondary" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode">☀️</button>
+            <div class="zoom-controls" role="group" aria-label="Zoom controls">
+                <button class="secondary zoom-btn" onclick="zoomOut()" aria-label="Zoom out">−</button>
+                <span class="zoom-label" id="zoomLabel" aria-hidden="true">100%</span>
+                <input type="range" min="25" max="200" value="100" id="zoomSlider" oninput="setZoom(this.value)" aria-label="Zoom level" aria-valuemin="25" aria-valuemax="200" aria-valuenow="100">
+                <button class="secondary zoom-btn" onclick="zoomIn()" aria-label="Zoom in">+</button>
             </div>
-        </div>
+        </nav>
     </header>
-    <div class="status-bar">
+    <div class="status-bar" role="status" aria-live="polite">
         <div><span id="fileStatus">Loading...</span> <span class="file-name" id="fileName"></span></div>
         <div id="changeStatus"></div>
     </div>
-    <div class="board-container">
+    <main id="main-content" class="board-container" role="main">
         <div class="board" id="board">
-            <div class="acts-view active" id="actsView"></div>
-            <div class="swimlane-view" id="swimlaneView"></div>
-            <div class="storyboard-view" id="storyboardView">
+            <section class="acts-view active" id="actsView" aria-label="Acts view">
+                <h2 class="sr-only">Story Beats by Act</h2>
+            </section>
+            <section class="swimlane-view" id="swimlaneView" aria-label="Swimlane view">
+                <h2 class="sr-only">Story Beats by Subplot</h2>
+            </section>
+            <section class="storyboard-view" id="storyboardView" aria-label="Storyboard view">
+                <h2 class="sr-only">Visual Storyboard</h2>
                 <div class="storyboard-container" id="storyboardContainer"></div>
-            </div>
+            </section>
         </div>
-    </div>
+    </main>
+    <div id="announcer" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 
     <!-- Card Modal -->
-    <div class="modal-overlay" id="cardModal">
+    <div class="modal-overlay" id="cardModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal">
             <h2 id="modalTitle">Add Beat</h2>
             <form id="cardForm">
@@ -502,14 +553,14 @@
     </div>
 
     <!-- Settings Modal -->
-    <div class="modal-overlay" id="settingsModal">
+    <div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
         <div class="modal" style="max-width:400px;">
-            <h2>⚙️ Settings</h2>
+            <h2 id="settingsTitle">⚙️ Settings</h2>
             <div class="settings-section">
                 <h3>Theme</h3>
                 <div class="toggle-row">
-                    <span style="font-size:0.8rem;">Dark Mode</span>
-                    <div class="toggle-switch" id="darkModeToggle" onclick="toggleTheme()"></div>
+                    <label id="darkModeLabel" style="font-size:0.8rem;">Dark Mode</label>
+                    <div class="toggle-switch" id="darkModeToggle" onclick="toggleTheme()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleTheme();}" role="switch" aria-checked="true" aria-labelledby="darkModeLabel" tabindex="0"></div>
                 </div>
             </div>
             <div class="settings-section">
@@ -539,9 +590,9 @@
     </div>
 
     <!-- Other Modals -->
-    <div class="modal-overlay" id="exportModal">
+    <div class="modal-overlay" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
         <div class="modal">
-            <h2>Export / Save Version</h2>
+            <h2 id="exportTitle">Export / Save Version</h2>
             <div class="form-group">
                 <label>Filename</label>
                 <input type="text" id="exportFilename" value="story-beats.md" placeholder="e.g., story-beats-v2.md">
@@ -555,9 +606,9 @@
             </div>
         </div>
     </div>
-    <div class="modal-overlay" id="loadModal">
+    <div class="modal-overlay" id="loadModal" role="dialog" aria-modal="true" aria-labelledby="loadTitle">
         <div class="modal">
-            <h2>Load File</h2>
+            <h2 id="loadTitle">Load File</h2>
             <div class="drop-area" id="dropArea">
                 <p>Drop story-beats.md here</p>
                 <button type="button" onclick="document.getElementById('fileInput').click()">Choose File</button>
@@ -566,17 +617,17 @@
             <div class="modal-actions"><button class="secondary" onclick="closeModal('loadModal')">Cancel</button></div>
         </div>
     </div>
-    <div class="modal-overlay" id="templatesModal">
+    <div class="modal-overlay" id="templatesModal" role="dialog" aria-modal="true" aria-labelledby="templatesTitle">
         <div class="modal">
-            <h2>Templates</h2>
+            <h2 id="templatesTitle">Templates</h2>
             <div class="template-list" id="templateList"></div>
             <div class="modal-actions"><button class="secondary" onclick="closeModal('templatesModal')">Cancel</button></div>
         </div>
     </div>
 
-    <div class="modal-overlay" id="authModal">
+    <div class="modal-overlay" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
         <div class="modal" style="max-width:420px;">
-            <h2>Sign In / Sign Up</h2>
+            <h2 id="authTitle">Sign In / Sign Up</h2>
             <form id="authForm">
                 <div class="form-group">
                     <label>Email</label>
@@ -597,9 +648,9 @@
             </form>
         </div>
     </div>
-    <div class="modal-overlay" id="actEditorModal">
+    <div class="modal-overlay" id="actEditorModal" role="dialog" aria-modal="true" aria-labelledby="actEditorTitle">
         <div class="modal">
-            <h2>Edit Acts</h2>
+            <h2 id="actEditorTitle">Edit Acts</h2>
             <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px;">Drag acts on the board to reorder them</p>
             <div id="actEditor"></div>
             <button class="secondary" onclick="addNewAct()" style="margin:10px 0;">+ Add Act</button>
@@ -608,7 +659,7 @@
     </div>
 
     <!-- Shot Modal (Storyboard) -->
-    <div class="modal-overlay" id="shotModal">
+    <div class="modal-overlay" id="shotModal" role="dialog" aria-modal="true" aria-labelledby="shotModalTitle">
         <div class="modal">
             <h2 id="shotModalTitle">Add Shot</h2>
             <form id="shotForm">
@@ -677,6 +728,15 @@
         
         // Storyboard data
         let shots = [];
+
+        // Accessibility: announce messages to screen readers
+        function announce(message) {
+            const announcer = document.getElementById('announcer');
+            if (announcer) {
+                announcer.textContent = '';
+                setTimeout(() => { announcer.textContent = message; }, 50);
+            }
+        }
 
         const firebaseConfig = {
             apiKey: "REDACTED",
@@ -1161,7 +1221,10 @@
             document.body.classList.toggle('light-mode', !isDarkMode);
             document.getElementById('themeToggle').textContent = isDarkMode ? '☀️' : '🌙';
             const toggle = document.getElementById('darkModeToggle');
-            if (toggle) toggle.classList.toggle('active', isDarkMode);
+            if (toggle) {
+                toggle.classList.toggle('active', isDarkMode);
+                toggle.setAttribute('aria-checked', isDarkMode ? 'true' : 'false');
+            }
         }
 
         // Colors
@@ -1230,7 +1293,9 @@
         function setZoom(v) {
             zoom = Math.max(25, Math.min(200, parseInt(v)));
             document.getElementById('zoomLabel').textContent = zoom + '%';
-            document.getElementById('zoomSlider').value = zoom;
+            const slider = document.getElementById('zoomSlider');
+            slider.value = zoom;
+            slider.setAttribute('aria-valuenow', zoom);
             document.getElementById('board').style.transform = `scale(${zoom/100})`;
         }
         function zoomIn() { setZoom(zoom + 15); }
@@ -1240,11 +1305,15 @@
             currentView = view;
             updateViewButtons();
             render();
+            const viewNames = { acts: 'Acts view', swimlane: 'Swimlane view', storyboard: 'Storyboard view' };
+            announce(viewNames[view] + ' active');
         }
 
         function updateViewButtons() {
             document.querySelectorAll('.view-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.view === currentView);
+                const isActive = btn.dataset.view === currentView;
+                btn.classList.toggle('active', isActive);
+                btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
             });
         }
 
@@ -1335,8 +1404,20 @@
             div.className = `card status-${card.status || 'draft'}`;
             div.draggable = true;
             div.dataset.id = card.id;
+            div.tabIndex = 0;
+            div.setAttribute('role', 'article');
+            div.setAttribute('aria-label', `${card.title}, ${card.status || 'draft'}`);
             div.onclick = (e) => { if (e.button === 0 && !draggedCard) editCard(card.id); };
-            div.innerHTML = `<div class="card-title">${esc(card.title)}</div><div class="card-desc">${esc(card.description||'')}</div><div class="card-meta"><span>${card.status||'draft'}</span>${card.sceneFile?'📄':''}</div>`;
+            div.onkeydown = (e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); editCard(card.id); }
+                if (e.key === 'Delete') { if (confirm('Delete this card?')) { deleteCardById(card.id); } }
+                // Keyboard reordering with Ctrl+Arrow
+                if (e.ctrlKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                    e.preventDefault();
+                    moveCardByKeyboard(card.id, e.key === 'ArrowUp' ? -1 : 1, div);
+                }
+            };
+            div.innerHTML = `<div class="card-title">${esc(card.title)}</div><div class="card-desc">${esc(card.description||'')}</div><div class="card-meta"><span>${card.status||'draft'}</span><span class="sr-only">Status: ${card.status||'draft'}</span>${card.sceneFile?'📄':''}</div>`;
             return div;
         }
 
@@ -1450,7 +1531,10 @@
             document.getElementById('cardAct').innerHTML = acts.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
         }
 
+        let lastFocusedElement = null;
+
         function openAddModal() {
+            lastFocusedElement = document.activeElement;
             document.getElementById('modalTitle').textContent = 'Add Beat';
             document.getElementById('cardId').value = '';
             document.getElementById('cardTitleInput').value = '';
@@ -1460,9 +1544,12 @@
             document.getElementById('cardAct').value = acts[0]?.id || '';
             document.getElementById('cardStatus').value = 'draft';
             document.getElementById('cardModal').classList.add('active');
+            setTimeout(() => document.getElementById('cardTitleInput').focus(), 50);
+            announce('Add beat dialog opened');
         }
 
         function editCard(id) {
+            lastFocusedElement = document.activeElement;
             const card = cards.find(c => c.id === id);
             if (!card) return;
             document.getElementById('modalTitle').textContent = 'Edit Beat';
@@ -1474,6 +1561,8 @@
             document.getElementById('cardAct').value = card.act;
             document.getElementById('cardStatus').value = card.status || 'draft';
             document.getElementById('cardModal').classList.add('active');
+            setTimeout(() => document.getElementById('cardTitleInput').focus(), 50);
+            announce('Edit beat dialog opened');
         }
 
         function saveCard(e) {
@@ -1501,11 +1590,49 @@
         function deleteCurrentCard() {
             const id = document.getElementById('cardId').value;
             if (id && confirm('Delete this beat?')) {
-                cards = cards.filter(c => c.id !== id);
-                markChanged();
+                deleteCardById(id);
                 closeModal('cardModal');
-                render();
             }
+        }
+
+        function deleteCardById(id) {
+            cards = cards.filter(c => c.id !== id);
+            markChanged();
+            render();
+            announce('Card deleted');
+        }
+
+        function moveCardByKeyboard(cardId, direction, element) {
+            const card = cards.find(c => c.id === cardId);
+            if (!card) return;
+            
+            // Get cards in same act, sorted by order
+            const actCards = cards.filter(c => c.act === card.act).sort((a, b) => a.order - b.order);
+            const currentIdx = actCards.findIndex(c => c.id === cardId);
+            const newIdx = currentIdx + direction;
+            
+            // Check bounds
+            if (newIdx < 0 || newIdx >= actCards.length) {
+                announce('Cannot move further');
+                return;
+            }
+            
+            // Swap orders
+            const swapCard = actCards[newIdx];
+            const tempOrder = card.order;
+            card.order = swapCard.order;
+            swapCard.order = tempOrder;
+            
+            markChanged();
+            render();
+            
+            // Restore focus to the moved card
+            setTimeout(() => {
+                const movedEl = document.querySelector(`.card[data-id="${cardId}"]`);
+                if (movedEl) movedEl.focus();
+            }, 50);
+            
+            announce(`Moved to position ${newIdx + 1} of ${actCards.length}`);
         }
 
         // ==================== STORYBOARD ====================
@@ -1545,8 +1672,11 @@
                 div.className = 'storyboard-shot';
                 div.draggable = true;
                 div.dataset.id = shot.id;
+                div.tabIndex = 0;
+                div.setAttribute('role', 'article');
                 
                 const shotNum = shot.shotNumber || (idx + 1);
+                div.setAttribute('aria-label', `Shot ${shotNum}, ${shot.description || 'No description'}`);
                 const hasImage = shot.imageUrl || shot.imagePath;
                 
                 const imgSrc = shot.imageUrl || shot.imagePath;
@@ -1585,6 +1715,18 @@
                 // Double-click image to open full edit modal
                 const imgContainer = div.querySelector('.shot-image-container');
                 imgContainer.ondblclick = (e) => { e.stopPropagation(); editShot(shot.id); };
+                
+                // Keyboard handlers for accessibility
+                div.onkeydown = (e) => {
+                    if (e.target.hasAttribute('contenteditable')) return; // Let editable fields handle their own keys
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); editShot(shot.id); }
+                    if (e.key === 'Delete') { if (confirm('Delete this shot?')) { deleteShotById(shot.id); } }
+                    // Keyboard reordering with Ctrl+Arrow
+                    if (e.ctrlKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+                        e.preventDefault();
+                        moveShotByKeyboard(shot.id, e.key === 'ArrowLeft' ? -1 : 1);
+                    }
+                };
                 
                 // Drag handlers
                 div.ondragstart = e => {
@@ -1743,13 +1885,47 @@
         function deleteCurrentShot() {
             const id = document.getElementById('shotId').value;
             if (id && confirm('Delete this shot?')) {
-                shots = shots.filter(s => s.id !== id);
-                // Reorder remaining shots
-                shots.sort((a, b) => a.order - b.order).forEach((s, i) => s.order = i);
-                markChanged();
+                deleteShotById(id);
                 closeModal('shotModal');
-                render();
             }
+        }
+
+        function deleteShotById(id) {
+            shots = shots.filter(s => s.id !== id);
+            shots.sort((a, b) => a.order - b.order).forEach((s, i) => s.order = i);
+            markChanged();
+            render();
+            announce('Shot deleted');
+        }
+
+        function moveShotByKeyboard(shotId, direction) {
+            const sortedShots = [...shots].sort((a, b) => a.order - b.order);
+            const currentIdx = sortedShots.findIndex(s => s.id === shotId);
+            const newIdx = currentIdx + direction;
+            
+            // Check bounds
+            if (newIdx < 0 || newIdx >= sortedShots.length) {
+                announce('Cannot move further');
+                return;
+            }
+            
+            // Swap orders
+            const currentShot = sortedShots[currentIdx];
+            const swapShot = sortedShots[newIdx];
+            const tempOrder = currentShot.order;
+            currentShot.order = swapShot.order;
+            swapShot.order = tempOrder;
+            
+            markChanged();
+            render();
+            
+            // Restore focus to the moved shot
+            setTimeout(() => {
+                const movedEl = document.querySelector(`.storyboard-shot[data-id="${shotId}"]`);
+                if (movedEl) movedEl.focus();
+            }, 50);
+            
+            announce(`Moved to position ${newIdx + 1} of ${sortedShots.length}`);
         }
         
         function updateShotImagePreview(url) {
@@ -1882,7 +2058,14 @@
             document.getElementById('changeStatus').innerHTML = '<span class="unsaved">● Unsaved</span>';
         }
 
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            if (lastFocusedElement) {
+                lastFocusedElement.focus();
+                lastFocusedElement = null;
+            }
+            announce('Dialog closed');
+        }
 
         // Templates
         function renderTemplates() {

@@ -209,7 +209,22 @@ npx @anthropic-ai/mcp-inspector story-cards-mcp
 | Netlify Deployment | 🔲 Ready to deploy |
 | MCP Server | ✅ Complete |
 | Markdown Import | ✅ Built into MCP (`import_markdown` tool) |
+| **Accessibility (WCAG)** | ✅ Phases 1-5 complete — see [ACCESSIBILITY.md](ACCESSIBILITY.md) |
 | Timeline Visualization | 🔲 Not started |
 | GitHub Integration | 🔲 Planning |
 
-**Immediate Next Action:** Configure MCP in Windsurf settings, then deploy to Netlify.
+### Accessibility Implementation (Dec 25, 2025)
+- ✅ Semantic landmarks (`<header>`, `<nav>`, `<main>`, `<section>`)
+- ✅ Skip link for keyboard users
+- ✅ ARIA labels on all buttons and controls
+- ✅ View tabs with `role="tab"` and `aria-selected`
+- ✅ Cards/shots: `tabindex`, `role="article"`, keyboard handlers
+- ✅ Keyboard reordering: `Ctrl+Arrow` for cards and shots
+- ✅ Toggle switch: `role="switch"`, `aria-checked`, keyboard support
+- ✅ Modal focus management and announcements
+- ✅ Live region for screen reader announcements
+- ✅ Visible focus indicators (`:focus-visible`)
+
+**Remaining:** Status text badges (not color-only), context menu keyboard support.
+
+**Immediate Next Action:** Deploy to Netlify.
