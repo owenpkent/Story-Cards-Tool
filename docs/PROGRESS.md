@@ -1,6 +1,6 @@
-# Story Cards Tool — Progress & Status
+# Cinematic Blueprint — Progress & Status
 
-**Last Updated:** December 25, 2025
+**Last Updated:** December 26, 2025
 
 ---
 
@@ -22,7 +22,7 @@
 ## Completed ✅
 
 ### Core Application
-- Single-file HTML app (`story-cards.html`) — works offline
+- Single-file HTML app (`cinematic-blueprint.html`) — works offline
 - **Three views:** Acts (Kanban), Swimlanes, Storyboard
 - Drag-and-drop for cards, acts, and shots
 - Inline editing, right-click context menus
@@ -50,7 +50,7 @@ See [CLOUD_STATUS.md](CLOUD_STATUS.md) for details.
 **Windsurf config:**
 ```json
 {
-  "story-cards": {
+  "cinematic-blueprint": {
     "command": "node",
     "args": ["C:/Users/Owen/dev/Story-Cards-Tool/story-cards-mcp/dist/index.js"],
     "env": { "STORYBOARD_PATH": "C:/path/to/storyboard.json" }
