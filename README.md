@@ -1,12 +1,26 @@
-# Story Cards & Storyboard Tool
+# Cinematic Blueprint
 
-A drag-and-drop story beat organizer and visual storyboarding tool. No server needed — just open `story-cards.html` in any browser.
+**Open Source Edition**
+
+A visual story planning tool for writers, filmmakers, and content creators. Organize story beats with drag-and-drop, plan scenes across acts and subplots, and create visual storyboards with shot descriptions and reference images.
+
+🌐 **Website:** [cinematicblueprint.com](https://cinematicblueprint.com)
+
+---
+
+## About This Repo
+
+This is the **open source community edition** of Cinematic Blueprint. It contains the full-featured story planning tool that runs entirely in your browser.
+
+- 📖 **Open Source** — MIT licensed, free forever
+- 🔌 **Self-hosted** — No server needed, just open the HTML file
+- 🤝 **Community-driven** — Contributions welcome!
 
 ---
 
 ## Quick Start
 
-1. Open `story-cards.html` in your browser
+1. Open `cinematic-blueprint.html` in your browser
 2. Switch between **Story Beats**, **Swimlanes**, and **Storyboard** views
 3. Edit your content (drag to rearrange, click to edit)
 4. Click **Export** → Download your work as `.md` or `.json`
@@ -78,7 +92,7 @@ This tool is designed to be deployed per-project. Recommended structure:
 
 ```
 my-video-project/
-├── story-cards.html          # The tool (copy this)
+├── cinematic-blueprint.html  # The tool (copy this)
 ├── project.json              # Project config (auto-created)
 ├── story-beats/              # Beat card exports
 │   ├── story-beats-v1.md
@@ -92,7 +106,7 @@ my-video-project/
 
 ### Deploying to a New Project
 
-1. Copy `story-cards.html` to your project folder
+1. Copy `cinematic-blueprint.html` to your project folder
 2. Create an `images/` folder for reference images
 3. Open the HTML file — it auto-creates config on first export
 
@@ -111,7 +125,7 @@ This keeps your storyboard file small and Git-friendly.
 
 | Location | Purpose |
 |----------|---------|
-| `story-cards.html` | The tool |
+| `cinematic-blueprint.html` | The tool |
 | `project.json` | Project settings |
 | `story-beats/` | Versioned story beat exports |
 | `storyboard/` | Storyboard exports (JSON) |
@@ -141,10 +155,24 @@ This keeps your storyboard file small and Git-friendly.
 
 ---
 
-## Cloud Hosting (Future)
+## Cloud Features
 
-See [CLOUD_HOSTING_PROPOSAL.md](CLOUD_HOSTING_PROPOSAL.md) for plans to add:
-- User accounts (Google sign-in)
-- Cloud save/sync
-- Multi-device access
-- Image uploads
+Cloud save is now available! See [docs/CLOUD_STATUS.md](docs/CLOUD_STATUS.md) for details.
+
+- ✅ User accounts (Email/Password)
+- ✅ Cloud save/sync via Firestore
+- 🔲 Multi-project support (planned)
+- 🔲 Image uploads (planned)
+
+---
+
+## Documentation
+
+All technical documentation is in the [`docs/`](docs/) folder:
+
+| Document | Description |
+|----------|-------------|
+| [Progress & Status](docs/PROGRESS.md) | Current status & roadmap |
+| [Cloud Implementation](docs/CLOUD_STATUS.md) | Firebase setup & deployment |
+| [Accessibility](docs/ACCESSIBILITY.md) | WCAG 2.1 AA compliance |
+| [MCP Server](docs/MCP_SERVER_DESIGN.md) | AI integration |
