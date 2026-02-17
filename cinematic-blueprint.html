@@ -739,13 +739,13 @@
         }
 
         const firebaseConfig = {
-            apiKey: "REDACTED",
-            authDomain: "story-cards-a3cf6.firebaseapp.com",
-            projectId: "story-cards-a3cf6",
-            storageBucket: "story-cards-a3cf6.firebasestorage.app",
-            messagingSenderId: "979819599170",
-            appId: "1:979819599170:web:b1cac56274c491dccd24db",
-            measurementId: "G-5JGN4GMMRQ"
+            apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+            authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+            projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+            storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+            messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+            appId: import.meta.env.VITE_FIREBASE_APP_ID,
+            measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
         };
         const cloudProjectId = 'default';
 
